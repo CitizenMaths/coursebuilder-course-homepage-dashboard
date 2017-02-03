@@ -9,7 +9,7 @@ A layout change for the course homepage from a list to a dashboard approach whic
 
 ##Modifications to views/base_course.html
 
-**Line #13 ** - `<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">`
+**Line #13** - `<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">`
 
 Added `initial-scale=1` for use with gridism.css.
 
