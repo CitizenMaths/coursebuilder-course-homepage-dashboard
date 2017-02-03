@@ -1,0 +1,166 @@
+{% macro render_progress(outline_element) %}
+  {% if outline_element.is_progress_recorded %}
+    {% if outline_element.progress == 0 or outline_element.progress is none %}
+      {% set progress_src = 'assets/img/not_started.png' %}
+      {% set progress_id_prefix = 'progress-notstarted-' %}
+      {% if outline_element.kind == 'assessment' %}
+        {# I18N: Alt text for image showing student progress. #}
+        {% set progress_alt = gettext('Not yet submitted') %}
+      {% else %}
+        {# I18N: Alt text for image showing student progress. #}
+        {% set progress_alt = gettext('Not yet started') %}
+      {% endif %}
+    {% elif outline_element.progress == 1 %}
+      {% set progress_src = 'assets/img/in_progress.png' %}
+      {% set progress_id_prefix = 'progress-inprogress-' %}
+      {#- I18N: Alt text for image showing student progress. #}
+      {% set progress_alt = gettext('In progress') %}
+    {% elif outline_element.progress == 2 %}
+      {% set progress_src = 'assets/img/completed.png' %}
+      {% set progress_id_prefix = 'progress-completed-' %}
+      {#- I18N: Alt text for image showing student progress. #}
+      {% set progress_alt = gettext('Completed') %}
+    {% endif %}
+    <img src="{{ progress_src }}"
+         alt="{{ progress_alt }}"
+         title="{{ progress_title }}"
+         class="gcb-progress-icon"
+         id="{{ progress_id_prefix }}{{ outline_element.id }}">
+  {% else %}
+    <span class="gcb-progress-empty"></span>
+  {% endif %}
+{% endmacro %}
+
+{% macro render_heading_divs(title, desc)  %}
+  <div class="grid">
+    <div class="unit whole pi_title">{{ title }}</div>
+  </div>
+  <div class="grid">
+    <div class="unit whole pi_desc">{{ desc }}</div>
+  </div>
+{% endmacro  %}
+
+{% macro render_div_element(outline_element, percent_height, div_container_class, make_link=True) %}
+  {% if outline_element.link and not suppress_link and make_link %}
+    <a href="{{ outline_element.link|escape }}">
+  {% endif %}
+  <div class="{{ div_container_class }} db-badge-div db-unit-title-div">
+    {% if percent_height == 100 %}
+      <div class="db-unit-colour-fill db-colour-fill-br-all" style="height: {{ percent_height }}%;"></div>
+    {% else %}
+      <div class="db-unit-colour-fill db-colour-fill-br-bottom" style="height: {{ percent_height }}%;"></div>
+    {% endif %}
+    <div class="db-unit-title">
+      {% if make_link %}
+        <span class="unittitle">
+      {% else %}
+        <span class="unittitle" style="cursor: default;">
+      {% endif %}
+      {{ outline_element.title|trim }}</span>
+    {% if outline_element.description and not suppress_description%}
+      <div class="unitdesc">{{ outline_element.description }}</div>
+    {% endif %}
+    </div>
+  </div>
+  {% if outline_element.link and not suppress_link and make_link%}
+    </a>
+  {% endif %}
+{% endmacro %}
+
+{% macro render_badge_div(height_percentage, badge_location, powerful_idea, div_container_class) %}
+  <div class="{{ div_container_class }} db-badge-div">
+    {% if height_percentage == 100 %}
+      <div class="db-colour-fill db-colour-fill-br-all" style="height: {{ height_percentage  }}%;">&nbsp;</div>
+    {% else %}
+      <div class="db-colour-fill db-colour-fill-br-bottom" style="height: {{ height_percentage  }}%;">&nbsp;</div>
+    {% endif %}
+    <div class="db-badge-holder" style="background-image: url('{{ badge_location  }}');"></div>
+    <div class="db-badge-desc">
+      {% if height_percentage == 0 %}
+        You haven’t started {{ powerful_idea }} yet. Choose a unit to work on or to review.
+      {% elif height_percentage == 25 %}
+        You have started {{ powerful_idea }}, but still have quite a way to go. Choose a unit to work on or to review.
+      {% elif height_percentage == 50 %}
+        You are very roughly half way through {{ powerful_idea }}. Choose a unit to work on or to review.
+      {% elif height_percentage == 75 %}
+        You have completed most of {{ powerful_idea }}, not far to go. Choose a unit to work on or to review.
+      {% elif height_percentage == 100 %}
+        You have completed {{ powerful_idea }}.
+      {% endif %}
+    </div>
+  </div>
+{% endmacro %}
+
+{% macro render_eocq_badge_div(height_percentage, badge_location, powerful_idea, div_container_class) %}
+  <div class="{{ div_container_class }} db-badge-div">
+    {% if height_percentage == 100 %}
+      <div class="db-colour-fill db-colour-fill-br-all" style="height: {{ height_percentage  }}%;">&nbsp;</div>
+    {% else %}
+      <div class="db-colour-fill db-colour-fill-br-bottom" style="height: {{ height_percentage  }}%;">&nbsp;</div>
+    {% endif %}
+    <div class="db-badge-holder" style="background-image: url('{{ badge_location  }}');"></div>
+    <div class="db-badge-desc">
+      {% if height_percentage == 0 %}
+        You haven’t started {{ powerful_idea }} yet.
+      {% elif height_percentage == 25 %}
+        You have started {{ powerful_idea }}, but still have quite a way to go.
+      {% elif height_percentage == 50 %}
+        You are very roughly half way through {{ powerful_idea }}.
+      {% elif height_percentage == 75 %}
+        You have completed most of {{ powerful_idea }}, not far to go.
+      {% elif height_percentage == 100 %}
+        You have completed {{ powerful_idea }}.
+      {% endif %}
+    </div>
+  </div>
+{% endmacro %}
+
+{% macro render_outline_element(outline_element,
+                                can_see_drafts,
+                                course_availability,
+                                outer_element_tag,
+                                outer_element_class,
+                                inner_element_tag,
+                                inner_element_class,
+                                suppress_link=False,
+                                suppress_description=False) %}
+  {% if outline_element.link_is_last_page_visited %}
+    {% set outer_element_class = outer_element_class + ' gcb-last-location' %}
+  {% endif %}
+
+  <{{ outer_element_tag }} class="{{ outer_element_class|trim }}">
+    <div class="gcb-progress-icon-holder">
+      {{ render_progress(outline_element) }}
+    </div>
+    <{{ inner_element_tag }} class="{{ inner_element_class|trim }}">
+      <!--{{ render_progress(outline_element) }}-->
+      {% if outline_element.link and not suppress_link %}
+        <a href="{{ outline_element.link|escape }}">
+      {% endif %}
+      {{ outline_element.title }}
+      {% if outline_element.link and not suppress_link %}
+        </a>
+      {% endif %}
+
+      {# When registration is required, then add annotations to items that
+         are strictly-private or strictly-public.  (For courses that are
+         private, all items are private, and for courses that are
+         registration-optional, all items are public, so don't bother
+         redundantly adding markup.) #}
+      {% if can_see_drafts %}
+        {% if not outline_element.is_available_to_students %}
+          <span class="gcb-grayed">(Private)</span>
+        {% endif %}
+        {% if course_availability == 'registration_required' and
+              outline_element.is_available_to_visitors %}
+          <span class="gcb-grayed">(Public)</span>
+        {% endif %}
+      {% endif %}
+      {% if outline_element.description and not suppress_description%}
+        <span class="gcb-unit-description">
+          {{ outline_element.description }}
+        </span>
+      {% endif %}
+    </{{ inner_element_tag }}>
+  </{{ outer_element_tag }}>
+{% endmacro %}
